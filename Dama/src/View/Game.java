@@ -32,7 +32,7 @@ public class Game extends JFrame {
 	private static final int WIDTH = 600;
 	private Board board;
 	private TurnChanger turnChanger;
-	private Cpu black;        //non ancora usati
+	private Cpu black;
 	private LogWindow log = new LogWindow();
 	private final CheckExit checkExit=new CheckExit();
 	
@@ -89,7 +89,8 @@ public class Game extends JFrame {
 		new Sound ("music/soundTrack.wav").start();
 	}
 
-	private void showBoard(boolean activate) {
+	//Se activate è falso non aggiungo gli action listener alle pedine (fine partita o mangiate consecutive).
+	private void showBoard(boolean activate) { 
 		for (int row = 0; row < 8; row++)
             for (int column = 0; column < 8; column++){
             	Position position = new Position(row,column);
@@ -97,7 +98,7 @@ public class Game extends JFrame {
                     if (board.isEmpty(position))
                     	add(new EmptyTile((row+column)%2==0 ? Board.BLACK : Board.WHITE));
                     
-                    else if(board.isMarker(position) && activate)
+                    else if(board.isMarker(position))
                     	addMarker(new MarkerTile(board.getMarker(position).getRelatedPlay()));
                     
                     else 
@@ -126,7 +127,12 @@ public class Game extends JFrame {
 				
 				FactoryOfPlays factory = new FactoryOfCapturingsForPiece(play.getDestination(), board);
 				boolean flag = true;
-				if (play instanceof Move || factory.isEmpty()){
+				if (play instanceof Capture && !factory.isEmpty()){
+					for (AbstractPlay p : factory)
+						board.setMarker(p);
+					flag = false;
+				}
+				else {
 					turnChanger.next();
 				
 					huffPosition = turnChanger.getHuffPosition();
